@@ -1,7 +1,8 @@
 const express = require('express');
 const keys = require("./config/key");
-require("./services/passport");
+
 require('./models/User');
+require("./services/passport");
 
 
 const authRoutes = require("./routes/authRoutes");
