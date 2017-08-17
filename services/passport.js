@@ -1,21 +1,19 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const keys = require("../config/key");
 
-const User= mongoose.model('users');
+const User = mongoose.model("users");
 
-passport.serializeUser((user,done)=>{
-  done(null,user.id);
+passport.serializeUser((user, done) => {
+  done(null, user.id);
 });
 
-passport.deserializeUser((id,done)=>{
-   User.findById(id)
-   .then(user=>{
-    done(null , user);
-   });
-
+passport.deserializeUser((id, done) => {
+  User.findById(id).then(user => {
+    done(null, user);
+  });
 });
 passport.use(
   new GoogleStrategy(
@@ -23,23 +21,19 @@ passport.use(
       clientID: keys.googleClientID,
       clientSecret: keys.googleClientSecret,
       callbackURL: "/auth/google/callback",
-      proxy:true
-    }, 
-    (accessToken, refreshToken, profile, done) =>{
-       User.findOne({googleId:profile.id}) //checks if the id already exists
-          .then((existingUser)=>{
-            if(existingUser){
-             done(null, existingUser);//we already have a record with the given profile ID
-            }
-            else{
-               new User({ // if the id doesnt exist save the data 
-        googleId:profile.id}).save()
-        .then(user=> done(null,user));    //make a new record
-            }
-          })
-   
+      proxy: true
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ googleId: profile.id }); //checks if the id already exists
+
+      if (existingUser) {
+      return done(null, existingUser); //we already have a record with the given profile ID
+      }
+          const user= await new User({
+          // if the id doesnt exist save the data
+          googleId: profile.id}).save()
+        done(null, user); //make a new record
+      }
     
-  
-    }
   )
 );
